@@ -13,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             ImageView imageView = (ImageView) rowView.findViewById(R.id.preview);
 
             textView.setText(values[position]);
-            imageView.setImageResource(R.drawable.ic_launcher_background);
+            Picasso.get().load("https://defcon.ru/wp-content/uploads/2015/12/ico_android-3.png").fit().into(imageView);
 
             return rowView;
         }
