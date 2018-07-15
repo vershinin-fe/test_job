@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
@@ -29,7 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView mItemsDisplayList;
 
-    private String response;
+    private TextView mErrorMessageDisplay;
+
+    private ProgressBar mLoadingIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +40,30 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mItemsDisplayList = (ListView)findViewById(R.id.listView);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
 
+        makeApiQuery();
+    }
+
+    private void listViewInit(){
+        CustomArrayAdapter myAdapter = new CustomArrayAdapter(MainActivity.this, itemsList.toArray(new Item[itemsList.size()]));
+        mItemsDisplayList.setAdapter(myAdapter);
+    }
+
+    private void makeApiQuery() {
         URL apiUrl = NetworkUtils.buildUrl(API_URL);
         new ApiQueryTask().execute(apiUrl);
+    }
+
+    private void showItemsListView() {
+        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
+        mItemsDisplayList.setVisibility(View.VISIBLE);
+    }
+
+    private void showErrorMessage() {
+        mItemsDisplayList.setVisibility(View.INVISIBLE);
+        mErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
 
     static class ViewHolder {
@@ -87,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -103,15 +128,13 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String requestResults) {
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
             if (requestResults != null && !requestResults.equals("")) {
                 itemsList = JsonUtils.getItemsListFromJson(requestResults);
-
-                ArrayAdapter<Item> adapter = new CustomArrayAdapter(
-                        MainActivity.this,
-                        itemsList.toArray(new Item[itemsList.size()])
-                );
-
-                mItemsDisplayList.setAdapter(adapter);
+                listViewInit();
+                showItemsListView();
+            } else {
+                showErrorMessage();
             }
         }
     }
