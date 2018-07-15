@@ -17,7 +17,6 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-
 import su.vfe.listview.model.Item;
 import su.vfe.listview.utils.JsonUtils;
 import su.vfe.listview.utils.NetworkUtils;
@@ -43,6 +42,11 @@ public class MainActivity extends AppCompatActivity {
         new ApiQueryTask().execute(apiUrl);
     }
 
+    static class ViewHolder {
+        public ImageView imageView;
+        public TextView textView;
+    }
+
     private static class CustomArrayAdapter extends ArrayAdapter<Item> {
         private final Context context;
         private final Item[] values;
@@ -57,14 +61,22 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View rowView = inflater.inflate(R.layout.row_layout, parent, false);
+            ViewHolder holder;
+            View rowView = convertView;
 
-            TextView textView = (TextView) rowView.findViewById(R.id.text);
-            ImageView imageView = (ImageView) rowView.findViewById(R.id.preview);
+            if (rowView == null) {
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                rowView = inflater.inflate(R.layout.row_layout, parent, false);
+                holder = new ViewHolder();
+                holder.textView = (TextView) rowView.findViewById(R.id.text);
+                holder.imageView = (ImageView) rowView.findViewById(R.id.preview);
+                rowView.setTag(holder);
+            } else {
+                holder = (ViewHolder) rowView.getTag();
+            }
 
-            textView.setText(values[position].getTitle());
-            Picasso.get().load(values[position].getUrl()).fit().into(imageView);
+            holder.textView.setText(values[position].getTitle());
+            Picasso.get().load(values[position].getUrl()).fit().into(holder.imageView);
 
             return rowView;
         }
@@ -94,7 +106,10 @@ public class MainActivity extends AppCompatActivity {
             if (requestResults != null && !requestResults.equals("")) {
                 itemsList = JsonUtils.getItemsListFromJson(requestResults);
 
-                ArrayAdapter<Item> adapter = new CustomArrayAdapter(MainActivity.this, itemsList.toArray(new Item[itemsList.size()]));
+                ArrayAdapter<Item> adapter = new CustomArrayAdapter(
+                        MainActivity.this,
+                        itemsList.toArray(new Item[itemsList.size()])
+                );
 
                 mItemsDisplayList.setAdapter(adapter);
             }
