@@ -16,11 +16,17 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
+
+import su.vfe.listview.model.Item;
+import su.vfe.listview.utils.JsonUtils;
 import su.vfe.listview.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static String API_URL = "http://jsonplaceholder.typicode.com/photos?id=3";
+    public static String API_URL = "http://jsonplaceholder.typicode.com/photos?albumId=10";
+
+    private List<Item> itemsList;
 
     private ListView mItemsDisplayList;
 
@@ -37,11 +43,11 @@ public class MainActivity extends AppCompatActivity {
         new ApiQueryTask().execute(apiUrl);
     }
 
-    private static class CustomArrayAdapter extends ArrayAdapter<String> {
+    private static class CustomArrayAdapter extends ArrayAdapter<Item> {
         private final Context context;
-        private final String[] values;
+        private final Item[] values;
 
-        public CustomArrayAdapter(Context context, String[] values) {
+        public CustomArrayAdapter(Context context, Item[] values) {
             super(context, R.layout.row_layout, values);
             this.context = context;
             this.values = values;
@@ -57,8 +63,8 @@ public class MainActivity extends AppCompatActivity {
             TextView textView = (TextView) rowView.findViewById(R.id.text);
             ImageView imageView = (ImageView) rowView.findViewById(R.id.preview);
 
-            textView.setText(values[position]);
-            Picasso.get().load("https://defcon.ru/wp-content/uploads/2015/12/ico_android-3.png").fit().into(imageView);
+            textView.setText(values[position].getTitle());
+            Picasso.get().load(values[position].getUrl()).fit().into(imageView);
 
             return rowView;
         }
@@ -86,14 +92,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String requestResults) {
             if (requestResults != null && !requestResults.equals("")) {
-                response = requestResults;
-            } else {
-                response = "";
+                itemsList = JsonUtils.getItemsListFromJson(requestResults);
+
+                ArrayAdapter<Item> adapter = new CustomArrayAdapter(MainActivity.this, itemsList.toArray(new Item[itemsList.size()]));
+
+                mItemsDisplayList.setAdapter(adapter);
             }
-
-            ArrayAdapter<String> adapter = new CustomArrayAdapter(MainActivity.this, new String[]{response});
-
-            mItemsDisplayList.setAdapter(adapter);
         }
     }
 }
