@@ -1,6 +1,7 @@
 package su.vfe.listview;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -12,27 +13,28 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import com.squareup.picasso.Picasso;
+import java.io.IOException;
+import java.net.URL;
+import su.vfe.listview.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static String API_URL = "http://jsonplaceholder.typicode.com/photos?id=3";
+
+    private ListView mItemsDisplayList;
+
+    private String response;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ListView listView = (ListView)findViewById(R.id.listView);
+        mItemsDisplayList = (ListView)findViewById(R.id.listView);
 
-        final String[] numeros = new String[] {
-                "Uno", "Dos", "Tres", "Cuatro", "Cinco",
-                "Seis", "Siete", "Ocho", "Nueve", "Diez",
-                "Once", "Doce", "Trece"
-        };
-
-        ArrayAdapter<String> adapter = new CustomArrayAdapter(this, numeros);
-
-        listView.setAdapter(adapter);
+        URL apiUrl = NetworkUtils.buildUrl(API_URL);
+        new ApiQueryTask().execute(apiUrl);
     }
 
     private static class CustomArrayAdapter extends ArrayAdapter<String> {
@@ -59,6 +61,39 @@ public class MainActivity extends AppCompatActivity {
             Picasso.get().load("https://defcon.ru/wp-content/uploads/2015/12/ico_android-3.png").fit().into(imageView);
 
             return rowView;
+        }
+    }
+
+    public class ApiQueryTask extends AsyncTask<URL, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(URL... params) {
+            URL requestUrl = params[0];
+            String requestResults = null;
+            try {
+                requestResults = NetworkUtils.getResponseFromHttpUrl(requestUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return requestResults;
+        }
+
+        @Override
+        protected void onPostExecute(String requestResults) {
+            if (requestResults != null && !requestResults.equals("")) {
+                response = requestResults;
+            } else {
+                response = "";
+            }
+
+            ArrayAdapter<String> adapter = new CustomArrayAdapter(MainActivity.this, new String[]{response});
+
+            mItemsDisplayList.setAdapter(adapter);
         }
     }
 }
