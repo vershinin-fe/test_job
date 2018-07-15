@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -21,6 +22,7 @@ import java.util.List;
 import su.vfe.listview.model.Item;
 import su.vfe.listview.utils.JsonUtils;
 import su.vfe.listview.utils.NetworkUtils;
+import su.vfe.listview.utils.NotificationUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,9 +41,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mItemsDisplayList = (ListView)findViewById(R.id.listView);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+        mItemsDisplayList = findViewById(R.id.listView);
+        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
+        mErrorMessageDisplay = findViewById(R.id.tv_error_message_display);
+
+        mItemsDisplayList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                NotificationUtils.showNotification(MainActivity.this, itemsList.get(position), position);
+            }
+        });
 
         makeApiQuery();
     }
@@ -75,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         private final Context context;
         private final Item[] values;
 
-        public CustomArrayAdapter(Context context, Item[] values) {
+        CustomArrayAdapter(Context context, Item[] values) {
             super(context, R.layout.row_layout, values);
             this.context = context;
             this.values = values;
@@ -92,8 +101,8 @@ public class MainActivity extends AppCompatActivity {
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 rowView = inflater.inflate(R.layout.row_layout, parent, false);
                 holder = new ViewHolder();
-                holder.textView = (TextView) rowView.findViewById(R.id.text);
-                holder.imageView = (ImageView) rowView.findViewById(R.id.preview);
+                holder.textView = rowView.findViewById(R.id.text);
+                holder.imageView = rowView.findViewById(R.id.preview);
                 rowView.setTag(holder);
             } else {
                 holder = (ViewHolder) rowView.getTag();
