@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ListView</string>
+    <string name="preview_description">Image preview</string>
 </resources>
